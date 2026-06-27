@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ふくまる｜生成AI×業務効率化・BIダッシュボード制作</title>
+<style>
+  :root{
+    --bg:#0f1729; --panel:#16213a; --line:#26304d; --ink:#e8edf7; --sub:#9fb0d0;
+    --accent:#4f8cff; --accent2:#22c79b; --chip:#1d2a4a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+       background:var(--bg);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:0 auto;padding:0 20px}
+  header{padding:64px 0 40px;border-bottom:1px solid var(--line)}
+  .eyebrow{color:var(--accent2);font-weight:700;letter-spacing:.08em;font-size:13px}
+  h1{font-size:34px;margin:10px 0 8px;line-height:1.35}
+  h1 span{color:var(--accent)}
+  .lead{color:var(--sub);font-size:17px;max-width:680px}
+  .chips{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px}
+  .chip{background:var(--chip);border:1px solid var(--line);color:var(--ink);
+        padding:6px 12px;border-radius:999px;font-size:13px}
+  section{padding:44px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:22px;margin-bottom:6px}
+  .muted{color:var(--sub);font-size:14px;margin-bottom:22px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card h3{font-size:16px;margin-bottom:6px}
+  .card p{color:var(--sub);font-size:14px}
+  .work{position:relative;overflow:hidden}
+  .thumb{aspect-ratio:16/9;border-radius:10px;border:1px dashed var(--line);
+         display:flex;align-items:center;justify-content:center;color:var(--sub);
+         font-size:13px;text-align:center;background:#101a30;margin-bottom:12px;padding:10px}
+  .tag{display:inline-block;background:#102a22;color:var(--accent2);border:1px solid #1c4a3c;
+       font-size:12px;padding:2px 8px;border-radius:6px;margin-top:8px}
+  .services{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .price{display:flex;align-items:baseline;gap:6px;margin-top:10px}
+  .price b{font-size:20px;color:var(--ink)}
+  .price small{color:var(--sub)}
+  .steps{counter-reset:s;display:grid;gap:12px}
+  .step{display:flex;gap:14px;align-items:flex-start}
+  .step .n{flex:0 0 28px;height:28px;border-radius:50%;background:var(--accent);
+           color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+  .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+  .btn{background:var(--accent);color:#fff;text-decoration:none;padding:12px 22px;
+       border-radius:10px;font-weight:700;display:inline-block}
+  .btn.ghost{background:transparent;border:1px solid var(--accent);color:var(--accent)}
+  footer{padding:34px 0 60px;color:var(--sub);font-size:13px}
+  .note{background:#1a1230;border:1px solid #3a2a5a;color:#d8c8ff;font-size:13px;
+        padding:10px 14px;border-radius:8px;margin-top:14px}
+  @media(max-width:680px){.grid,.services{grid-template-columns:1fr}h1{font-size:27px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">PORTFOLIO</div>
+    <h1>Excelを1枚送るだけ。<br><span>5日で、判断できる画面</span>にします。</h1>
+    <p class="lead">売上・経費・客数などのExcel／CSVを、PC・スマホのブラウザで見られる
+       HTMLダッシュボードに変換します。まずは1画面・5,000円から。</p>
+    <div class="chips">
+      <span class="chip">Excel / CSV 1ファイル</span>
+      <span class="chip">KPIカード3個</span>
+      <span class="chip">グラフ3個</span>
+      <span class="chip">HTML納品</span>
+      <span class="chip">会議不要</span>
+      <span class="chip">初稿5日</span>
+    </div>
+    <div class="cta">
+      <a class="btn" href="https://coconala.com/services/4266599" target="_blank" rel="noopener">5,000円で依頼内容を見る</a>
+      <a class="btn ghost" href="#works">制作例を見る</a>
+    </div>
+  </header>
+
+  <section id="works">
+    <h2>判断できるダッシュボード制作例</h2>
+    <p class="muted">匿名データで再現したデモです。完成画面だけでなく、何を判断できるかを示しています。</p>
+    <div class="grid">
+      <div class="card work">
+        <div class="thumb" style="border-style:solid;padding:0;overflow:hidden">
+          <svg viewBox="0 0 320 180" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="月次売上ダッシュボードのサンプル">
+            <rect width="320" height="180" fill="#0e1830"/>
+            <text x="14" y="22" fill="#e8edf7" font-family="sans-serif" font-size="12" font-weight="600">月次売上ダッシュボード</text>
+            <rect x="14" y="30" width="88" height="34" rx="6" fill="#16213a"/>
+            <text x="22" y="46" fill="#9fb0d0" font-size="8" font-family="sans-serif">売上</text>
+            <text x="22" y="60" fill="#4f8cff" font-size="14" font-family="sans-serif" font-weight="700">¥4.2M</text>
+            <rect x="108" y="30" width="88" height="34" rx="6" fill="#16213a"/>
+            <text x="116" y="46" fill="#9fb0d0" font-size="8" font-family="sans-serif">前年比</text>
+            <text x="116" y="60" fill="#22c79b" font-size="14" font-family="sans-serif" font-weight="700">+18%</text>
+            <g stroke="#26304d" stroke-width="1"><line x1="14" y1="92" x2="306" y2="92"/><line x1="14" y1="116" x2="306" y2="116"/><line x1="14" y1="140" x2="306" y2="140"/></g>
+            <polyline fill="none" stroke="#4f8cff" stroke-width="2" points="22,134 52,127 82,131 112,117 142,121 172,107 202,111 232,97 262,103 292,86"/>
+            <g fill="#4f8cff"><circle cx="232" cy="97" r="2.5"/><circle cx="292" cy="86" r="2.5"/></g>
+          </svg>
+        </div>
+        <h3>① 月次売上ダッシュボード</h3>
+        <p>月次の売上推移と前年比を一目で確認。経営の定点観測に。</p>
+        <span class="tag">HTML / データ可視化</span>
+      </div>
+      <div class="card work">
+        <div class="thumb" style="border-style:solid;padding:0;overflow:hidden">
+          <svg viewBox="0 0 320 180" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="入会者推移ダッシュボードのサンプル">
+            <rect width="320" height="180" fill="#0e1830"/>
+            <text x="14" y="22" fill="#e8edf7" font-family="sans-serif" font-size="12" font-weight="600">入会者推移</text>
+            <rect x="14" y="30" width="88" height="34" rx="6" fill="#16213a"/>
+            <text x="22" y="46" fill="#9fb0d0" font-size="8" font-family="sans-serif">今月入会</text>
+            <text x="22" y="60" fill="#22c79b" font-size="14" font-family="sans-serif" font-weight="700">86名</text>
+            <rect x="108" y="30" width="88" height="34" rx="6" fill="#16213a"/>
+            <text x="116" y="46" fill="#9fb0d0" font-size="8" font-family="sans-serif">継続率</text>
+            <text x="116" y="60" fill="#4f8cff" font-size="14" font-family="sans-serif" font-weight="700">92%</text>
+            <g stroke="#26304d" stroke-width="1"><line x1="14" y1="92" x2="306" y2="92"/><line x1="14" y1="116" x2="306" y2="116"/><line x1="14" y1="140" x2="306" y2="140"/></g>
+            <polygon fill="#22c79b" fill-opacity="0.18" points="22,138 52,132 82,134 112,124 142,128 172,114 202,118 232,104 262,108 292,94 292,140 22,140"/>
+            <polyline fill="none" stroke="#22c79b" stroke-width="2" points="22,138 52,132 82,134 112,124 142,128 172,114 202,118 232,104 262,108 292,94"/>
+          </svg>
+        </div>
+        <h3>② 入会者推移ダッシュボード</h3>
+        <p>月別の入会数と継続率を可視化。会員ビジネスのKPI管理に。</p>
+        <span class="tag">HTML / データ可視化</span>
+      </div>
+      <div class="card work">
+        <div class="thumb" style="border-style:solid;padding:0;overflow:hidden">
+          <svg viewBox="0 0 320 180" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="コース別売上構成ダッシュボードのサンプル">
+            <rect width="320" height="180" fill="#0e1830"/>
+            <text x="14" y="22" fill="#e8edf7" font-family="sans-serif" font-size="12" font-weight="600">コース別売上構成</text>
+            <g transform="rotate(-90 78 110)" fill="none" stroke-width="14">
+              <circle cx="78" cy="110" r="32" stroke="#26304d"/>
+              <circle cx="78" cy="110" r="32" stroke="#4f8cff" stroke-dasharray="90.5 110.5"/>
+              <circle cx="78" cy="110" r="32" stroke="#22c79b" stroke-dasharray="60.3 140.8" stroke-dashoffset="-90.5"/>
+              <circle cx="78" cy="110" r="32" stroke="#f0b429" stroke-dasharray="50.3 150.8" stroke-dashoffset="-150.8"/>
+            </g>
+            <text x="78" y="114" fill="#e8edf7" font-size="13" font-weight="700" font-family="sans-serif" text-anchor="middle">¥4.2M</text>
+            <g font-family="sans-serif" font-size="10">
+              <rect x="150" y="64" width="10" height="10" rx="2" fill="#4f8cff"/><text x="166" y="73" fill="#e8edf7">ベーシック 45%</text>
+              <rect x="150" y="92" width="10" height="10" rx="2" fill="#22c79b"/><text x="166" y="101" fill="#e8edf7">スタンダード 30%</text>
+              <rect x="150" y="120" width="10" height="10" rx="2" fill="#f0b429"/><text x="166" y="129" fill="#e8edf7">プレミアム 25%</text>
+            </g>
+          </svg>
+        </div>
+        <h3>③ コース別売上構成</h3>
+        <p>商品・コース別の売上割合をドーナツで把握。主力と伸びしろを判断。</p>
+        <span class="tag">HTML / データ可視化</span>
+      </div>
+      <div class="card work">
+        <div class="thumb" style="border-style:solid;padding:0;overflow:hidden">
+          <svg viewBox="0 0 320 180" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="会員継続・解約率ダッシュボードのサンプル">
+            <rect width="320" height="180" fill="#0e1830"/>
+            <text x="14" y="22" fill="#e8edf7" font-family="sans-serif" font-size="12" font-weight="600">会員継続・解約率</text>
+            <g transform="rotate(-90 80 106)" fill="none" stroke-width="14">
+              <circle cx="80" cy="106" r="32" stroke="#26304d"/>
+              <circle cx="80" cy="106" r="32" stroke="#22c79b" stroke-dasharray="185 16" stroke-linecap="round"/>
+            </g>
+            <text x="80" y="103" fill="#22c79b" font-size="18" font-weight="700" font-family="sans-serif" text-anchor="middle">92%</text>
+            <text x="80" y="118" fill="#9fb0d0" font-size="9" font-family="sans-serif" text-anchor="middle">継続率</text>
+            <rect x="150" y="70" width="150" height="30" rx="6" fill="#16213a"/>
+            <text x="160" y="84" fill="#9fb0d0" font-size="9" font-family="sans-serif">今月の解約率</text>
+            <text x="160" y="96" fill="#ff7a7a" font-size="13" font-weight="700" font-family="sans-serif">8%</text>
+            <rect x="150" y="110" width="150" height="30" rx="6" fill="#16213a"/>
+            <text x="160" y="124" fill="#9fb0d0" font-size="9" font-family="sans-serif">継続会員数</text>
+            <text x="160" y="136" fill="#4f8cff" font-size="13" font-weight="700" font-family="sans-serif">1,240名</text>
+          </svg>
+        </div>
+        <h3>④ 会員継続・解約ダッシュボード</h3>
+        <p>継続率・解約率・会員数をまとめて監視。離脱の早期発見に。</p>
+        <span class="tag">HTML / データ可視化</span>
+      </div>
+      <div class="card work">
+        <div class="thumb" style="border-style:solid;padding:0;overflow:hidden">
+          <svg viewBox="0 0 320 180" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="流入チャネル分析ダッシュボードのサンプル">
+            <rect width="320" height="180" fill="#0e1830"/>
+            <text x="14" y="22" fill="#e8edf7" font-family="sans-serif" font-size="12" font-weight="600">流入チャネル分析</text>
+            <line x1="14" y1="140" x2="306" y2="140" stroke="#26304d" stroke-width="1"/>
+            <g>
+              <rect x="34" y="60" width="40" height="40" fill="#4f8cff"/><rect x="34" y="100" width="40" height="26" fill="#22c79b"/><rect x="34" y="126" width="40" height="14" fill="#f0b429"/>
+              <rect x="100" y="72" width="40" height="34" fill="#4f8cff"/><rect x="100" y="106" width="40" height="20" fill="#22c79b"/><rect x="100" y="126" width="40" height="14" fill="#f0b429"/>
+              <rect x="166" y="82" width="40" height="28" fill="#4f8cff"/><rect x="166" y="110" width="40" height="18" fill="#22c79b"/><rect x="166" y="128" width="40" height="12" fill="#f0b429"/>
+              <rect x="232" y="92" width="40" height="22" fill="#4f8cff"/><rect x="232" y="114" width="40" height="16" fill="#22c79b"/><rect x="232" y="130" width="40" height="10" fill="#f0b429"/>
+            </g>
+            <g font-family="sans-serif" font-size="8" fill="#9fb0d0" text-anchor="middle">
+              <text x="54" y="152">3月</text><text x="120" y="152">4月</text><text x="186" y="152">5月</text><text x="252" y="152">6月</text>
+            </g>
+            <g font-family="sans-serif" font-size="9">
+              <rect x="34" y="162" width="9" height="9" rx="2" fill="#4f8cff"/><text x="47" y="170" fill="#e8edf7">自然検索</text>
+              <rect x="110" y="162" width="9" height="9" rx="2" fill="#22c79b"/><text x="123" y="170" fill="#e8edf7">SNS</text>
+              <rect x="166" y="162" width="9" height="9" rx="2" fill="#f0b429"/><text x="179" y="170" fill="#e8edf7">広告</text>
+            </g>
+          </svg>
+        </div>
+        <h3>⑤ 流入チャネル分析</h3>
+        <p>集客チャネル別の推移を積み上げで比較。施策の効果検証に。</p>
+        <span class="tag">HTML / データ可視化</span>
+      </div>
+      <div class="card work" style="display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">
+        <h3>＋ AIでHP制作</h3>
+        <p>AIを活用したホームページ制作も対応します。<br>（事例リンクをここに）</p>
+      </div>
+    </div>
+    <div class="note">上記は匿名データによる再現デモです。お預かりするデータは、必要に応じて匿名化したサンプルでも構いません。</div>
+  </section>
+
+  <section>
+    <h2>最初に購入できる商品</h2>
+    <p class="muted">相談だけで終わらないよう、入力・納品物・価格を固定しました。</p>
+    <div class="services">
+      <div class="card">
+        <h3>HTMLダッシュボード・スターター</h3>
+        <p>Excel／CSV 1ファイルから、KPIカード3個とグラフ3個を1画面にします。HTMLファイルと使い方メモを納品。</p>
+        <div class="price"><b>5,000円</b><small>／初稿5日・修正1回</small></div>
+        <div class="cta"><a class="btn" href="https://coconala.com/services/4266599" target="_blank" rel="noopener">購入ページへ</a></div>
+      </div>
+      <div class="card">
+        <h3>飲食店向け売上・FL率ダッシュボード</h3>
+        <p>売上、客数、客単価、原価、人件費、FL率をスマホで確認。元飲食店店長として、現場で見る数字から設計します。</p>
+        <div class="price"><b>10,000円〜</b><small>／ランサーズ</small></div>
+        <div class="cta"><a class="btn ghost" href="https://www.lancers.jp/menu/detail/1327561" target="_blank" rel="noopener">詳細を見る</a></div>
+      </div>
+      <div class="card">
+        <h3>追加オプション：毎月の自動更新</h3>
+        <p>スターターで画面を確認した後、GASによるファイル取込・集計・メール通知へ広げられます。</p>
+        <div class="price"><b>個別見積</b><small>／必要な場合だけ</small></div>
+      </div>
+      <div class="card">
+        <h3>今回の5,000円に含まないもの</h3>
+        <p>複数ファイル統合、自動更新、ログイン、サーバー公開、毎月の更新代行。必要な機能だけ後から追加できます。</p>
+        <div class="price"><b>範囲が明確</b><small>／追加費用を事前提示</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>進め方</h2>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><b>Excelを送る</b>：個人情報は削除・匿名化して構いません。</div></div>
+      <div class="step"><div class="n">2</div><div><b>見る数字を決める</b>：売上、客数、経費など3つまで選びます。</div></div>
+      <div class="step"><div class="n">3</div><div><b>5日以内に初稿</b>：ブラウザで開けるHTMLをお送りします。</div></div>
+      <div class="step"><div class="n">4</div><div><b>修正・納品</b>：1回修正し、HTMLと使い方メモを納品します。</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>プロフィール</h2>
+    <p class="muted">現場ヒアリングからAI活用を設計し、定着まで伴走します。フルリモート対応。</p>
+    <div class="card">
+      <p>
+        所属する組織の中でAI活用の推進役を担い、現場の担当者に直接ヒアリングして、
+        その人の業務に合わせてAI・自動化を設計し、定着まで伴走してきました。
+        <b>生成AIパスポート（2024年10月取得）</b>を保有し、AIを活用したコーディングで、
+        ダッシュボードや自動化ツールを自分で形にできる「手」も持っています。
+        「むずかしいことを、現場で使える形に」をモットーに、ITに不慣れな方にも分かりやすくお手伝いします。
+      </p>
+    </div>
+    <h3 style="margin:22px 0 6px;font-size:16px">これまでの実績（AI・自動化での業務改善）</h3>
+    <div class="grid">
+      <div class="card"><p><b>手書きアンケート約200件／月をOCRで自動データ化</b><br>分析レポート作成まで仕組み化。手入力をなくし、月あたり約10時間を削減。</p></div>
+      <div class="card"><p><b>研修・イベント後アンケート（平均150件）の集計・分析を自動化</b><br>レポート作成までを自動化。</p></div>
+      <div class="card"><p><b>入会・申込データを可視化するBIツールを自作</b><br>傾向を分析し、翌月の販促・プロモーション施策に活用。</p></div>
+      <div class="card"><p><b>各部署にヒアリングしAI活用を提案・ツール化</b><br>経理への問い合わせ対応をツール化し、問い合わせ件数そのものを削減。</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>お問い合わせ</h2>
+    <p class="muted">作品を見て終わりにせず、このページから同じ形式の商品を購入できます。</p>
+    <div class="cta">
+      <a class="btn" href="https://coconala.com/services/4266599" target="_blank" rel="noopener">HTMLダッシュボードを依頼する</a>
+      <a class="btn ghost" href="https://www.lancers.jp/menu/detail/1327561" target="_blank" rel="noopener">飲食店向け商品を見る</a>
+    </div>
+    <div class="note">購入前の確認だけでも構いません。「このExcelで作れるか」と、列名が分かる匿名画像をお送りください。</div>
+  </section>
+
+  <footer>
+    © 2026 ふくまる｜生成AI×業務効率化・BIダッシュボード制作
+  </footer>
+
+</div>
+</body>
+</html>
