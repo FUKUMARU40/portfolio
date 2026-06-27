@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>期間・店舗比較ダッシュボード｜サンプル</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f1f5f9; color: #0f172a; line-height: 1.5; min-height: 100vh;
+    }
+    .dashboard { max-width: 1440px; margin: 0 auto; padding: 24px; }
+    /* Header */
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+    }
+    .header-title { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, #047857, #10b981);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 900; font-size: 18px;
+      box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25);
+    }
+    .header h1 { font-size: 22px; font-weight: 700; color: #0f172a; }
+    .header .subtitle { font-size: 13px; color: #64748b; margin-top: 2px; }
+    /* Compare toggle */
+    .compare-bar {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      background: white; padding: 12px 18px; border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 24px;
+    }
+    .compare-bar .cur {
+      font-size: 14px; font-weight: 700; color: #0f172a;
+    }
+    .compare-bar .cur small { color: #64748b; font-weight: 500; }
+    .toggle-group { display: flex; gap: 6px; margin-left: auto; }
+    .toggle-group .lbl { font-size: 12px; color: #64748b; align-self: center; margin-right: 4px; }
+    .toggle-btn {
+      border: 1px solid #cbd5e1; background: #f8fafc; color: #475569;
+      padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: all .15s;
+    }
+    .toggle-btn.active {
+      background: #047857; border-color: #047857; color: white;
+      box-shadow: 0 2px 8px rgba(4,120,87,.25);
+    }
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px; margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: white; padding: 20px; border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid #10b981;
+    }
+    .kpi-card.accent { border-left-color: #f59e0b; }
+    .kpi-card .label {
+      font-size: 12px; color: #64748b; font-weight: 500; letter-spacing: 0.05em;
+      margin-bottom: 8px; text-transform: uppercase;
+    }
+    .kpi-card .value {
+      font-size: 27px; font-weight: 900; color: #0f172a;
+      letter-spacing: -0.02em; margin-bottom: 6px;
+    }
+    .kpi-card .value small { font-size: 15px; color: #64748b; font-weight: 700; }
+    .kpi-card .compare-row { display: flex; align-items: baseline; gap: 8px; }
+    .kpi-card .change {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+    }
+    .change.positive { color: #059669; background: #ecfdf5; }
+    .change.negative { color: #dc2626; background: #fef2f2; }
+    .change-period { font-size: 11px; color: #94a3b8; }
+    .prev-val { font-size: 11px; color: #94a3b8; }
+    /* Chart Grid */
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .chart-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .chart-card.full { grid-column: 1 / -1; }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .chart-title { font-size: 15px; font-weight: 700; color: #0f172a; }
+    .chart-meta { font-size: 12px; color: #94a3b8; }
+    .chart-container { position: relative; height: 280px; }
+    .chart-container.tall { height: 300px; }
+    /* Comparison table */
+    .table-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th {
+      text-align: left; padding: 12px 8px; font-size: 12px; font-weight: 700;
+      color: #64748b; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    thead th.num { text-align: right; }
+    tbody td { padding: 14px 8px; border-bottom: 1px solid #f1f5f9; }
+    tbody tr:hover { background: #f8fafc; }
+    .store-name { font-weight: 600; color: #0f172a; }
+    .num-cell { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: #0f172a; }
+    .num-cell.muted { color: #64748b; font-weight: 400; }
+    .pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+    .pill.up { color: #059669; background: #ecfdf5; }
+    .pill.down { color: #dc2626; background: #fef2f2; }
+    .footnote { margin-top: 18px; font-size: 12px; color: #94a3b8; }
+    @media (max-width: 768px) {
+      .chart-grid { grid-template-columns: 1fr; }
+      .header h1 { font-size: 18px; }
+      .kpi-card .value { font-size: 22px; }
+      .toggle-group { margin-left: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-title">
+        <div class="logo">AC</div>
+        <div>
+          <h1>Aoba Coffee 期間・店舗比較ダッシュボード</h1>
+          <div class="subtitle">4店舗 売上 比較分析（サンプル・架空データ）</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compare toggle -->
+    <div class="compare-bar">
+      <div class="cur">対象期間：<span id="curPeriod">2026年4月</span> <small>を基準に比較</small></div>
+      <div class="toggle-group">
+        <span class="lbl">比較対象</span>
+        <button class="toggle-btn active" data-mode="yoy">前年同月</button>
+        <button class="toggle-btn" data-mode="mom">前月</button>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <!-- Charts Row 1 -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">店舗別売上：当期 vs <span class="cmpLabel">前年同月</span></div>
+          <div class="chart-meta">単位: 千円</div>
+        </div>
+        <div class="chart-container"><canvas id="storeChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">カテゴリ別 売上構成（当期）</div>
+          <div class="chart-meta">構成比 %</div>
+        </div>
+        <div class="chart-container"><canvas id="categoryChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Trend Chart (Full Width) -->
+    <div class="chart-card full" style="margin-bottom: 16px;">
+      <div class="chart-header">
+        <div class="chart-title">月次売上推移：今年度 vs 前年度</div>
+        <div class="chart-meta">4店舗合計・単位: 千円</div>
+      </div>
+      <div class="chart-container tall"><canvas id="trendChart"></canvas></div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div class="table-card">
+      <div class="chart-header">
+        <div class="chart-title">店舗別 比較テーブル</div>
+        <div class="chart-meta">当期 vs <span class="cmpLabel">前年同月</span></div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>店舗</th>
+            <th class="num">当期売上</th>
+            <th class="num cmpLabel2">前年同月</th>
+            <th class="num">差分</th>
+            <th class="num">増減率</th>
+          </tr>
+        </thead>
+        <tbody id="cmpTableBody"></tbody>
+      </table>
+      <div class="footnote">※ 本ダッシュボードは架空のサンプルデータによる制作デモです。実在の企業・店舗とは関係ありません。</div>
+    </div>
+  </div>
+
+  <script>
+    Chart.defaults.font.family = "'Noto Sans JP', -apple-system, sans-serif";
+    Chart.defaults.color = '#475569';
+    Chart.defaults.borderColor = '#e2e8f0';
+
+    // ---- ダミーデータ（千円） ----
+    const stores = ['青葉本店', 'みなとみらい店', '大宮店', '自由が丘店'];
+    const current = [6240, 4980, 3820, 3600];      // 2026年4月
+    const prevYear = [5400, 4620, 3180, 3000];     // 2025年4月（前年同月）
+    const prevMonth = [6050, 4760, 3910, 3420];    // 2026年3月（前月）
+
+    // KPI（当期 / 前年同月 / 前月）
+    const kpis = [
+      { label: '総売上',   cur: 18640000, yoy: 16200000, mom: 18140000, fmt: v => '¥' + (v/1000).toLocaleString() + '千', accent:false },
+      { label: '客数',     cur: 28400,    yoy: 26800,    mom: 27950,    fmt: v => v.toLocaleString() + ' 人',           accent:false },
+      { label: '客単価',   cur: 656,      yoy: 604,      mom: 649,      fmt: v => '¥' + v.toLocaleString(),             accent:true  },
+      { label: 'リピート率', cur: 42.5,    yoy: 38.0,     mom: 41.2,     fmt: v => v.toFixed(1) + ' %', isPt:true,       accent:true  },
+    ];
+
+    const labels = { yoy: '前年同月', mom: '前月' };
+    let mode = 'yoy';
+
+    function compareData() { return mode === 'yoy' ? prevYear : prevMonth; }
+
+    // ---- KPI描画 ----
+    function renderKpis() {
+      const grid = document.getElementById('kpiGrid');
+      grid.innerHTML = '';
+      kpis.forEach(k => {
+        const base = mode === 'yoy' ? k.yoy : k.mom;
+        let changeTxt, pos;
+        if (k.isPt) {
+          const diff = k.cur - base;
+          pos = diff >= 0; changeTxt = (pos ? '▲ +' : '▼ ') + diff.toFixed(1) + 'pt';
+        } else {
+          const rate = ((k.cur - base) / base) * 100;
+          pos = rate >= 0; changeTxt = (pos ? '▲ +' : '▼ ') + rate.toFixed(1) + '%';
+        }
+        const card = document.createElement('div');
+        card.className = 'kpi-card' + (k.accent ? ' accent' : '');
+        card.innerHTML =
+          '<div class="label">' + k.label + '</div>' +
+          '<div class="value">' + k.fmt(k.cur) + '</div>' +
+          '<div class="compare-row">' +
+            '<span class="change ' + (pos ? 'positive' : 'negative') + '">' + changeTxt + '</span>' +
+            '<span class="change-period">' + labels[mode] + '比</span>' +
+          '</div>' +
+          '<div class="prev-val">' + labels[mode] + '：' + k.fmt(base) + '</div>';
+        grid.appendChild(card);
+      });
+    }
+
+    // ---- 店舗別比較 棒グラフ ----
+    const storeChart = new Chart(document.getElementById('storeChart'), {
+      type: 'bar',
+      data: {
+        labels: stores,
+        datasets: [
+          { label: '当期', data: current, backgroundColor: '#047857', borderRadius: 6, maxBarThickness: 46 },
+          { label: labels[mode], data: compareData(), backgroundColor: '#cbd5e1', borderRadius: 6, maxBarThickness: 46 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', align: 'end', labels: { boxWidth: 12, boxHeight: 12, font: { size: 12 } } },
+          tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ¥${c.parsed.y.toLocaleString()}千` } }
+        },
+        scales: {
+          y: { beginAtZero: true, ticks: { callback: v => '¥' + v.toLocaleString() + '千' }, grid: { color: '#f1f5f9' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // ---- カテゴリ構成 ドーナツ ----
+    new Chart(document.getElementById('categoryChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['ドリンク', 'フード', 'スイーツ', '豆・物販'],
+        datasets: [{
+          data: [52, 24, 16, 8],
+          backgroundColor: ['#047857', '#10b981', '#6ee7b7', '#f59e0b'],
+          borderWidth: 3, borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              boxWidth: 12, boxHeight: 12, padding: 12, font: { size: 12 },
+              generateLabels: (chart) => chart.data.labels.map((label, i) => ({
+                text: `${label}  ${chart.data.datasets[0].data[i]}%`,
+                fillStyle: chart.data.datasets[0].backgroundColor[i],
+                strokeStyle: chart.data.datasets[0].backgroundColor[i], index: i
+              }))
+            }
+          },
+          tooltip: { callbacks: { label: (c) => `${c.label}: ${c.parsed}%` } }
+        }
+      }
+    });
+
+    // ---- 月次推移 今年 vs 前年 折れ線 ----
+    const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    const thisYear = [16800, 15900, 18140, 18640, null, null, null, null, null, null, null, null];
+    const lastYear = [14900, 14200, 15800, 16200, 16900, 17400, 18800, 19200, 17600, 17100, 18300, 20500];
+    new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [
+          { label: '今年度', data: thisYear, borderColor: '#047857', backgroundColor: 'rgba(16,185,129,0.10)',
+            fill: true, tension: 0.35, borderWidth: 3, pointBackgroundColor: '#047857', pointBorderColor:'#fff', pointBorderWidth:2, pointRadius: 4, spanGaps: false },
+          { label: '前年度', data: lastYear, borderColor: '#94a3b8', borderDash: [6,6],
+            fill: false, tension: 0.35, borderWidth: 2, pointRadius: 0 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', align: 'end', labels: { boxWidth: 12, boxHeight: 12, font: { size: 12 } } },
+          tooltip: { callbacks: { label: (c) => c.parsed.y == null ? '' : `${c.dataset.label}: ¥${c.parsed.y.toLocaleString()}千` } }
+        },
+        scales: {
+          y: { beginAtZero: false, ticks: { callback: v => '¥' + v.toLocaleString() + '千' }, grid: { color: '#f1f5f9' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // ---- 比較テーブル ----
+    function renderTable() {
+      const body = document.getElementById('cmpTableBody');
+      const cmp = compareData();
+      body.innerHTML = '';
+      stores.forEach((s, i) => {
+        const diff = current[i] - cmp[i];
+        const rate = (diff / cmp[i]) * 100;
+        const up = diff >= 0;
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td class="store-name">' + s + '</td>' +
+          '<td class="num-cell">¥' + current[i].toLocaleString() + '千</td>' +
+          '<td class="num-cell muted">¥' + cmp[i].toLocaleString() + '千</td>' +
+          '<td class="num-cell">' + (up ? '+' : '−') + '¥' + Math.abs(diff).toLocaleString() + '千</td>' +
+          '<td class="num-cell"><span class="pill ' + (up ? 'up' : 'down') + '">' + (up ? '+' : '') + rate.toFixed(1) + '%</span></td>';
+        body.appendChild(tr);
+      });
+    }
+
+    // ---- ラベル更新 ＆ 切り替え ----
+    function refresh() {
+      document.querySelectorAll('.cmpLabel').forEach(e => e.textContent = labels[mode]);
+      document.querySelectorAll('.cmpLabel2').forEach(e => e.textContent = labels[mode]);
+      storeChart.data.datasets[1].label = labels[mode];
+      storeChart.data.datasets[1].data = compareData();
+      storeChart.update();
+      renderKpis();
+      renderTable();
+    }
+
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        mode = btn.dataset.mode;
+        refresh();
+      });
+    });
+
+    // 初期描画
+    renderKpis();
+    renderTable();
+  </script>
+</body>
+</html>
