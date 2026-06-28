@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小売店経営ダッシュボード｜サンプル</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    .dashboard { max-width: 1440px; margin: 0 auto; padding: 24px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .header-title { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 900; font-size: 20px;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+    }
+    .header h1 { font-size: 22px; font-weight: 700; color: #0f172a; }
+    .header .subtitle { font-size: 13px; color: #64748b; margin-top: 2px; }
+    .period-selector {
+      display: flex; align-items: center; gap: 8px; background: white;
+      padding: 8px 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      font-size: 14px; color: #475569;
+    }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card {
+      background: white; padding: 20px; border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid #3b82f6;
+    }
+    .kpi-card.accent { border-left-color: #f97316; }
+    .kpi-card.warn { border-left-color: #ef4444; }
+    .kpi-card .label { font-size: 12px; color: #64748b; font-weight: 500; letter-spacing: 0.05em; margin-bottom: 8px; text-transform: uppercase; }
+    .kpi-card .value { font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .kpi-card .change { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+    .change.positive { color: #059669; background: #ecfdf5; }
+    .change.negative { color: #dc2626; background: #fef2f2; }
+    .change-period { font-size: 11px; color: #94a3b8; margin-left: 6px; }
+    .chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .chart-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .chart-card.full { grid-column: 1 / -1; }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .chart-title { font-size: 15px; font-weight: 700; color: #0f172a; }
+    .chart-meta { font-size: 12px; color: #94a3b8; }
+    .chart-container { position: relative; height: 280px; }
+    .chart-container.tall { height: 320px; }
+
+    /* Inventory alert table */
+    .alert-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .alert-table thead th {
+      text-align: left; padding: 10px 6px; font-size: 11px; font-weight: 700;
+      color: #64748b; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .alert-table thead th.num { text-align: right; }
+    .alert-table tbody td { padding: 11px 6px; border-bottom: 1px solid #f1f5f9; }
+    .alert-table .stock-pill {
+      display: inline-block; padding: 2px 10px; border-radius: 12px; font-weight: 700; font-size: 11px;
+    }
+    .stock-pill.critical { background: #fee2e2; color: #991b1b; }
+    .stock-pill.low      { background: #fef3c7; color: #92400e; }
+    .stock-pill.ok       { background: #d1fae5; color: #065f46; }
+    .num-cell { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: #0f172a; }
+    .num-cell.muted { color: #64748b; font-weight: 400; }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="header">
+      <div class="header-title">
+        <div class="logo">RT</div>
+        <div>
+          <h1>Retail Store 経営ダッシュボード</h1>
+          <div class="subtitle">5店舗 在庫＆売上 統合分析</div>
+        </div>
+      </div>
+      <div class="period-selector">
+        <span>📅</span>
+        <span>2026年5月度（5/1 〜 5/17）</span>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="label">月間売上</div>
+        <div class="value">¥28,540,000</div>
+        <span class="change positive">▲ +12.4%</span>
+        <span class="change-period">前月比</span>
+      </div>
+      <div class="kpi-card">
+        <div class="label">在庫回転率</div>
+        <div class="value">5.8<span style="font-size: 16px; color: #64748b;"> 回/月</span></div>
+        <span class="change positive">▲ +0.6pt</span>
+        <span class="change-period">前月比</span>
+      </div>
+      <div class="kpi-card accent">
+        <div class="label">客単価</div>
+        <div class="value">¥4,285</div>
+        <span class="change positive">▲ +3.8%</span>
+        <span class="change-period">前月比</span>
+      </div>
+      <div class="kpi-card warn">
+        <div class="label">在庫切れSKU</div>
+        <div class="value">14<span style="font-size: 16px; color: #64748b;"> 品目</span></div>
+        <span class="change negative">▲ +3</span>
+        <span class="change-period">前週比</span>
+      </div>
+    </div>
+
+    <!-- Charts Row 1: Store sales + Inventory alert -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">店舗別売上 × 在庫回転率</div>
+          <div class="chart-meta">5月度</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="storeChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">⚠️ 在庫アラート TOP5</div>
+          <div class="chart-meta">要発注</div>
+        </div>
+        <table class="alert-table">
+          <thead>
+            <tr>
+              <th>商品名</th>
+              <th class="num">在庫</th>
+              <th class="num">状態</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>春夏Tシャツ Mサイズ</td>
+              <td class="num-cell">3</td>
+              <td class="num-cell"><span class="stock-pill critical">緊急</span></td>
+            </tr>
+            <tr>
+              <td>デニムパンツ Lサイズ</td>
+              <td class="num-cell">5</td>
+              <td class="num-cell"><span class="stock-pill critical">緊急</span></td>
+            </tr>
+            <tr>
+              <td>キャップ ネイビー</td>
+              <td class="num-cell">12</td>
+              <td class="num-cell"><span class="stock-pill low">低</span></td>
+            </tr>
+            <tr>
+              <td>スニーカー 27cm</td>
+              <td class="num-cell">15</td>
+              <td class="num-cell"><span class="stock-pill low">低</span></td>
+            </tr>
+            <tr>
+              <td>レザートート 黒</td>
+              <td class="num-cell">18</td>
+              <td class="num-cell"><span class="stock-pill low">低</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Charts Row 2: Category + Weekly sales -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">週次売上推移（直近12週）</div>
+          <div class="chart-meta">5店舗合計</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="weeklyChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">カテゴリ別売上</div>
+          <div class="chart-meta">構成比 %</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top products bar -->
+    <div class="chart-card full">
+      <div class="chart-header">
+        <div class="chart-title">🏆 売上TOP10 商品（月次）</div>
+        <div class="chart-meta">単位: 千円</div>
+      </div>
+      <div class="chart-container tall">
+        <canvas id="topProductsChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    Chart.defaults.font.family = "'Noto Sans JP', -apple-system, sans-serif";
+    Chart.defaults.color = '#475569';
+    Chart.defaults.borderColor = '#e2e8f0';
+
+    // ① Store Sales × Turnover
+    new Chart(document.getElementById('storeChart'), {
+      type: 'bar',
+      data: {
+        labels: ['渋谷店', '新宿店', '池袋店', '横浜店', '川崎店'],
+        datasets: [{
+          type: 'bar',
+          label: '月間売上（千円）',
+          data: [7250, 6580, 5840, 4920, 3950],
+          backgroundColor: '#1e40af',
+          borderRadius: 6,
+          maxBarThickness: 60,
+          yAxisID: 'y'
+        }, {
+          type: 'line',
+          label: '在庫回転率（回/月）',
+          data: [6.8, 6.2, 5.5, 5.4, 5.1],
+          borderColor: '#f97316',
+          backgroundColor: '#f97316',
+          tension: 0.3,
+          pointRadius: 6,
+          pointBackgroundColor: '#f97316',
+          borderWidth: 3,
+          yAxisID: 'y1'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', align: 'end', labels: { boxWidth: 12, boxHeight: 12, font: { size: 12 } } }
+        },
+        scales: {
+          y: {
+            position: 'left', beginAtZero: true,
+            ticks: { callback: (v) => '¥' + v.toLocaleString() + '千' },
+            grid: { color: '#f1f5f9' }
+          },
+          y1: {
+            position: 'right', beginAtZero: true, max: 10,
+            ticks: { callback: (v) => v + '回' },
+            grid: { drawOnChartArea: false }
+          },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // ② Weekly sales
+    new Chart(document.getElementById('weeklyChart'), {
+      type: 'line',
+      data: {
+        labels: ['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12'],
+        datasets: [{
+          label: '週次売上',
+          data: [5800, 6100, 5950, 6420, 6800, 6550, 7100, 7250, 6900, 7480, 7820, 8120],
+          borderColor: '#1e40af',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#1e40af',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          borderWidth: 3
+        }, {
+          label: '目標',
+          data: Array(12).fill(7000),
+          borderColor: '#f97316',
+          borderDash: [6, 6],
+          borderWidth: 2,
+          fill: false,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', align: 'end', labels: { boxWidth: 12, boxHeight: 12, font: { size: 12 } } } },
+        scales: {
+          y: { beginAtZero: true, ticks: { callback: (v) => '¥' + v.toLocaleString() + '千' }, grid: { color: '#f1f5f9' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // ③ Category pie
+    new Chart(document.getElementById('categoryChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['アパレル', '雑貨', 'シューズ', 'バッグ', 'アクセサリー'],
+        datasets: [{
+          data: [38, 24, 18, 12, 8],
+          backgroundColor: ['#1e40af','#3b82f6','#60a5fa','#93c5fd','#f97316'],
+          borderWidth: 3, borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              boxWidth: 12, boxHeight: 12, padding: 10, font: { size: 12 },
+              generateLabels: (chart) => chart.data.labels.map((label, i) => ({
+                text: `${label}  ${chart.data.datasets[0].data[i]}%`,
+                fillStyle: chart.data.datasets[0].backgroundColor[i],
+                strokeStyle: chart.data.datasets[0].backgroundColor[i],
+                index: i
+              }))
+            }
+          }
+        }
+      }
+    });
+
+    // ④ Top products
+    new Chart(document.getElementById('topProductsChart'), {
+      type: 'bar',
+      data: {
+        labels: ['オーバーサイズシャツ','カーゴパンツ','スニーカーAir','レザートート','フーディー','デニムジャケット','キャップ ロゴ','ニット帽','クロスバッグ','サンダル'],
+        datasets: [{
+          label: '売上（千円）',
+          data: [1850, 1620, 1480, 1340, 1280, 1180, 1050, 980, 920, 850],
+          backgroundColor: '#1e40af',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, ticks: { callback: (v) => '¥' + v.toLocaleString() + '千' }, grid: { color: '#f1f5f9' } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

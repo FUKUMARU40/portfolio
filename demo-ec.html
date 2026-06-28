@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EC事業者向けダッシュボード｜サンプル</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f1f5f9; color: #0f172a; line-height: 1.5; min-height: 100vh;
+    }
+    .dashboard { max-width: 1440px; margin: 0 auto; padding: 24px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .header-title { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 900; font-size: 18px;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+    }
+    .header h1 { font-size: 22px; font-weight: 700; color: #0f172a; }
+    .header .subtitle { font-size: 13px; color: #64748b; margin-top: 2px; }
+    .period-selector {
+      display: flex; align-items: center; gap: 8px; background: white;
+      padding: 8px 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      font-size: 14px; color: #475569;
+    }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card {
+      background: white; padding: 20px; border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid #3b82f6;
+    }
+    .kpi-card.accent { border-left-color: #f97316; }
+    .kpi-card.good { border-left-color: #10b981; }
+    .kpi-card .label { font-size: 12px; color: #64748b; font-weight: 500; letter-spacing: 0.05em; margin-bottom: 8px; text-transform: uppercase; }
+    .kpi-card .value { font-size: 26px; font-weight: 900; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .kpi-card .change { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+    .change.positive { color: #059669; background: #ecfdf5; }
+    .change.negative { color: #dc2626; background: #fef2f2; }
+    .change-period { font-size: 11px; color: #94a3b8; margin-left: 6px; }
+    .chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .chart-grid.equal { grid-template-columns: 1fr 1fr; }
+    .chart-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .chart-card.full { grid-column: 1 / -1; }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .chart-title { font-size: 15px; font-weight: 700; color: #0f172a; }
+    .chart-meta { font-size: 12px; color: #94a3b8; }
+    .chart-container { position: relative; height: 280px; }
+    .chart-container.short { height: 220px; }
+
+    .funnel { display: flex; flex-direction: column; gap: 10px; padding: 12px 0; }
+    .funnel-row {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .funnel-label {
+      width: 130px; font-size: 13px; color: #475569; font-weight: 500;
+    }
+    .funnel-bar-bg {
+      flex: 1; background: #f1f5f9; border-radius: 6px; height: 32px;
+      position: relative; overflow: hidden;
+    }
+    .funnel-bar {
+      height: 100%; border-radius: 6px;
+      display: flex; align-items: center; padding: 0 12px;
+      color: white; font-weight: 700; font-size: 13px;
+    }
+    .funnel-rate { width: 60px; text-align: right; font-size: 13px; color: #64748b; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="header">
+      <div class="header-title">
+        <div class="logo">EC</div>
+        <div>
+          <h1>EC事業 経営ダッシュボード</h1>
+          <div class="subtitle">Shopify／楽天／Amazon 統合分析</div>
+        </div>
+      </div>
+      <div class="period-selector">
+        <span>📅</span>
+        <span>2026年5月度（5/1 〜 5/17）</span>
+      </div>
+    </div>
+
+    <!-- KPI Cards (5枚) -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="label">GMV（流通総額）</div>
+        <div class="value">¥18,720,000</div>
+        <span class="change positive">▲ +18.4%</span>
+        <span class="change-period">前月比</span>
+      </div>
+      <div class="kpi-card">
+        <div class="label">注文数</div>
+        <div class="value">3,245<span style="font-size: 14px; color: #64748b;"> 件</span></div>
+        <span class="change positive">▲ +14.2%</span>
+        <span class="change-period">前月比</span>
+      </div>
+      <div class="kpi-card accent">
+        <div class="label">平均注文金額 (AOV)</div>
+        <div class="value">¥5,768</div>
+        <span class="change positive">▲ +3.7%</span>
+        <span class="change-period">前月比</span>
+      </div>
+      <div class="kpi-card good">
+        <div class="label">CVR（コンバージョン率）</div>
+        <div class="value">2.84<span style="font-size: 14px; color: #64748b;"> %</span></div>
+        <span class="change positive">▲ +0.32pt</span>
+        <span class="change-period">前月比</span>
+      </div>
+      <div class="kpi-card good">
+        <div class="label">LTV（生涯顧客価値）</div>
+        <div class="value">¥24,500</div>
+        <span class="change positive">▲ +8.1%</span>
+        <span class="change-period">前月比</span>
+      </div>
+    </div>
+
+    <!-- Row 1: Daily GMV + Channel breakdown -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">日次GMV推移（5/1〜5/17）</div>
+          <div class="chart-meta">単位: 千円</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="dailyChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">チャネル別売上</div>
+          <div class="chart-meta">構成比</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="channelChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Funnel + New vs Repeat -->
+    <div class="chart-grid equal">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">購入ファネル（5月）</div>
+          <div class="chart-meta">遷移率</div>
+        </div>
+        <div class="funnel">
+          <div class="funnel-row">
+            <div class="funnel-label">サイト訪問</div>
+            <div class="funnel-bar-bg">
+              <div class="funnel-bar" style="width: 100%; background: #1e40af;">114,250</div>
+            </div>
+            <div class="funnel-rate">100%</div>
+          </div>
+          <div class="funnel-row">
+            <div class="funnel-label">商品ページ閲覧</div>
+            <div class="funnel-bar-bg">
+              <div class="funnel-bar" style="width: 68%; background: #2563eb;">77,690</div>
+            </div>
+            <div class="funnel-rate">68.0%</div>
+          </div>
+          <div class="funnel-row">
+            <div class="funnel-label">カート追加</div>
+            <div class="funnel-bar-bg">
+              <div class="funnel-bar" style="width: 32%; background: #3b82f6;">36,560</div>
+            </div>
+            <div class="funnel-rate">32.0%</div>
+          </div>
+          <div class="funnel-row">
+            <div class="funnel-label">購入手続き開始</div>
+            <div class="funnel-bar-bg">
+              <div class="funnel-bar" style="width: 12%; background: #60a5fa;">13,710</div>
+            </div>
+            <div class="funnel-rate">12.0%</div>
+          </div>
+          <div class="funnel-row">
+            <div class="funnel-label">購入完了</div>
+            <div class="funnel-bar-bg">
+              <div class="funnel-bar" style="width: 2.84%; background: #f97316; min-width: 80px;">3,245</div>
+            </div>
+            <div class="funnel-rate">2.84%</div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">新規／リピーター比率</div>
+          <div class="chart-meta">注文数ベース</div>
+        </div>
+        <div class="chart-container short">
+          <canvas id="customerChart"></canvas>
+        </div>
+        <div style="margin-top: 12px; display: flex; justify-content: space-around; font-size: 13px;">
+          <div style="text-align: center;">
+            <div style="color: #64748b; font-size: 11px;">新規購入</div>
+            <div style="font-weight: 900; font-size: 22px; color: #1e40af;">38%</div>
+            <div style="color: #059669; font-size: 11px;">▲ +4.2pt</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="color: #64748b; font-size: 11px;">リピーター</div>
+            <div style="font-weight: 900; font-size: 22px; color: #f97316;">62%</div>
+            <div style="color: #059669; font-size: 11px;">▲ +1.8pt</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: Top products full width -->
+    <div class="chart-card full">
+      <div class="chart-header">
+        <div class="chart-title">🏆 商品売上TOP10</div>
+        <div class="chart-meta">5月度 | 単位: 千円</div>
+      </div>
+      <div class="chart-container">
+        <canvas id="topProductsChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    Chart.defaults.font.family = "'Noto Sans JP', -apple-system, sans-serif";
+    Chart.defaults.color = '#475569';
+    Chart.defaults.borderColor = '#e2e8f0';
+
+    // ① Daily GMV
+    const dailyLabels = [];
+    for (let i = 1; i <= 17; i++) dailyLabels.push(`5/${i}`);
+    new Chart(document.getElementById('dailyChart'), {
+      type: 'line',
+      data: {
+        labels: dailyLabels,
+        datasets: [{
+          label: 'GMV（千円）',
+          data: [950, 1020, 1180, 1240, 1100, 1350, 1480, 980, 1050, 1220, 1340, 1280, 1450, 1620, 1080, 1150, 1280],
+          borderColor: '#1e40af',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          fill: true, tension: 0.4,
+          pointBackgroundColor: '#1e40af', pointBorderColor: '#ffffff',
+          pointBorderWidth: 2, pointRadius: 4, borderWidth: 3
+        }, {
+          label: '目標',
+          data: Array(17).fill(1200),
+          borderColor: '#f97316',
+          borderDash: [6, 6], borderWidth: 2, fill: false, pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', align: 'end', labels: { boxWidth: 12, boxHeight: 12, font: { size: 12 } } } },
+        scales: {
+          y: { beginAtZero: true, ticks: { callback: (v) => '¥' + v.toLocaleString() + '千' }, grid: { color: '#f1f5f9' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // ② Channel breakdown
+    new Chart(document.getElementById('channelChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Shopify自社', '楽天', 'Amazon', 'Yahoo!', 'その他'],
+        datasets: [{
+          data: [38, 28, 22, 8, 4],
+          backgroundColor: ['#1e40af','#3b82f6','#60a5fa','#93c5fd','#f97316'],
+          borderWidth: 3, borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              boxWidth: 12, boxHeight: 12, padding: 10, font: { size: 12 },
+              generateLabels: (chart) => chart.data.labels.map((label, i) => ({
+                text: `${label}  ${chart.data.datasets[0].data[i]}%`,
+                fillStyle: chart.data.datasets[0].backgroundColor[i],
+                strokeStyle: chart.data.datasets[0].backgroundColor[i],
+                index: i
+              }))
+            }
+          }
+        }
+      }
+    });
+
+    // ③ New vs Repeat
+    new Chart(document.getElementById('customerChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['新規', 'リピーター'],
+        datasets: [{
+          data: [38, 62],
+          backgroundColor: ['#1e40af', '#f97316'],
+          borderWidth: 4, borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '70%',
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    // ④ Top products
+    new Chart(document.getElementById('topProductsChart'), {
+      type: 'bar',
+      data: {
+        labels: ['プレミアム保湿クリーム','オーガニックシャンプー','ヘアオイル30ml','美容液マスク','ボディソープ詰替','UVカットクリーム','リップバーム3個セット','ヘアブラシ','コットンタオル','化粧水500ml'],
+        datasets: [{
+          label: '売上（千円）',
+          data: [1850, 1520, 1380, 1240, 1150, 1080, 980, 920, 850, 780],
+          backgroundColor: '#1e40af',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, ticks: { callback: (v) => '¥' + v.toLocaleString() + '千' }, grid: { color: '#f1f5f9' } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>士業向け案件管理ダッシュボード｜サンプル</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f1f5f9; color: #0f172a; line-height: 1.5; min-height: 100vh;
+    }
+    .dashboard { max-width: 1440px; margin: 0 auto; padding: 24px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .header-title { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 900; font-size: 18px;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+    }
+    .header h1 { font-size: 22px; font-weight: 700; color: #0f172a; }
+    .header .subtitle { font-size: 13px; color: #64748b; margin-top: 2px; }
+    .period-selector {
+      display: flex; align-items: center; gap: 8px; background: white;
+      padding: 8px 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      font-size: 14px; color: #475569;
+    }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card {
+      background: white; padding: 20px; border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid #3b82f6;
+    }
+    .kpi-card.accent { border-left-color: #f97316; }
+    .kpi-card.good { border-left-color: #10b981; }
+    .kpi-card.warn { border-left-color: #ef4444; }
+    .kpi-card .label { font-size: 12px; color: #64748b; font-weight: 500; letter-spacing: 0.05em; margin-bottom: 8px; text-transform: uppercase; }
+    .kpi-card .value { font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .kpi-card .change { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+    .change.positive { color: #059669; background: #ecfdf5; }
+    .change.negative { color: #dc2626; background: #fef2f2; }
+    .change-period { font-size: 11px; color: #94a3b8; margin-left: 6px; }
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .chart-grid.wide { grid-template-columns: 2fr 1fr; }
+    .chart-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .chart-card.full { grid-column: 1 / -1; }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .chart-title { font-size: 15px; font-weight: 700; color: #0f172a; }
+    .chart-meta { font-size: 12px; color: #94a3b8; }
+    .chart-container { position: relative; height: 280px; }
+
+    .case-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .case-table thead th {
+      text-align: left; padding: 10px 8px; font-size: 11px; font-weight: 700;
+      color: #64748b; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .case-table thead th.num { text-align: right; }
+    .case-table tbody td { padding: 12px 8px; border-bottom: 1px solid #f1f5f9; }
+    .status-pill {
+      display: inline-block; padding: 3px 12px; border-radius: 12px; font-weight: 700; font-size: 11px;
+    }
+    .status-pill.progress { background: #dbeafe; color: #1e3a8a; }
+    .status-pill.review   { background: #fef3c7; color: #92400e; }
+    .status-pill.hearing  { background: #f3e8ff; color: #6b21a8; }
+    .status-pill.complete { background: #d1fae5; color: #065f46; }
+    .status-pill.delayed  { background: #fee2e2; color: #991b1b; }
+    .num-cell { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: #0f172a; }
+    .num-cell.muted { color: #64748b; font-weight: 400; }
+    .progress-bar-wrap {
+      width: 80px; background: #f1f5f9; border-radius: 4px; height: 8px; overflow: hidden; display: inline-block; vertical-align: middle;
+    }
+    .progress-bar {
+      height: 100%; background: linear-gradient(90deg, #1e40af, #3b82f6); border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="header">
+      <div class="header-title">
+        <div class="logo">PS</div>
+        <div>
+          <h1>士業事務所 案件管理ダッシュボード</h1>
+          <div class="subtitle">司法書士／行政書士／税理士向け 案件・売上・稼働分析</div>
+        </div>
+      </div>
+      <div class="period-selector">
+        <span>📅</span>
+        <span>2026年5月度（5/1 〜 5/17）</span>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="label">月間売上</div>
+        <div class="value">¥8,450,000</div>
+        <span class="change positive">▲ +14.8%</span>
+        <span class="change-period">前月比</span>
+      </div>
+      <div class="kpi-card">
+        <div class="label">進行中案件</div>
+        <div class="value">42<span style="font-size: 16px; color: #64748b;"> 件</span></div>
+        <span class="change positive">▲ +6</span>
+        <span class="change-period">前月比</span>
+      </div>
+      <div class="kpi-card good">
+        <div class="label">案件完了率</div>
+        <div class="value">87.5<span style="font-size: 16px; color: #64748b;"> %</span></div>
+        <span class="change positive">▲ +3.2pt</span>
+        <span class="change-period">前月比</span>
+      </div>
+      <div class="kpi-card warn">
+        <div class="label">納期遅延案件</div>
+        <div class="value">3<span style="font-size: 16px; color: #64748b;"> 件</span></div>
+        <span class="change negative">▲ +1</span>
+        <span class="change-period">前週比</span>
+      </div>
+    </div>
+
+    <!-- Row 1: Monthly revenue trend + Service breakdown -->
+    <div class="chart-grid wide">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">月次売上推移（直近12ヶ月）</div>
+          <div class="chart-meta">単位: 千円</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="monthlyChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">業務分野別売上</div>
+          <div class="chart-meta">構成比</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="serviceChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Staff utilization + Lead source -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">スタッフ別稼働状況</div>
+          <div class="chart-meta">時間ベース</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="staffChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">新規顧客の流入経路</div>
+          <div class="chart-meta">5月分</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="leadChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active cases table (full width) -->
+    <div class="chart-card full">
+      <div class="chart-header">
+        <div class="chart-title">📋 進行中の主要案件</div>
+        <div class="chart-meta">担当者別・進捗状況</div>
+      </div>
+      <table class="case-table">
+        <thead>
+          <tr>
+            <th style="width: 24%;">案件名</th>
+            <th>業務分野</th>
+            <th>担当</th>
+            <th class="num">売上見込</th>
+            <th class="num">進捗</th>
+            <th class="num">期限</th>
+            <th class="num">状態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>合同会社A社 設立登記</td>
+            <td>商業登記</td>
+            <td>佐藤</td>
+            <td class="num-cell">¥220,000</td>
+            <td class="num-cell"><div class="progress-bar-wrap"><div class="progress-bar" style="width: 80%;"></div></div></td>
+            <td class="num-cell muted">5/20</td>
+            <td class="num-cell"><span class="status-pill review">確認中</span></td>
+          </tr>
+          <tr>
+            <td>個人B様 相続登記</td>
+            <td>不動産登記</td>
+            <td>田中</td>
+            <td class="num-cell">¥185,000</td>
+            <td class="num-cell"><div class="progress-bar-wrap"><div class="progress-bar" style="width: 60%;"></div></div></td>
+            <td class="num-cell muted">5/25</td>
+            <td class="num-cell"><span class="status-pill progress">進行中</span></td>
+          </tr>
+          <tr>
+            <td>株式会社C社 役員変更</td>
+            <td>商業登記</td>
+            <td>佐藤</td>
+            <td class="num-cell">¥85,000</td>
+            <td class="num-cell"><div class="progress-bar-wrap"><div class="progress-bar" style="width: 40%;"></div></div></td>
+            <td class="num-cell muted">5/22</td>
+            <td class="num-cell"><span class="status-pill delayed">遅延</span></td>
+          </tr>
+          <tr>
+            <td>D事業者 建設業許可</td>
+            <td>許認可</td>
+            <td>鈴木</td>
+            <td class="num-cell">¥320,000</td>
+            <td class="num-cell"><div class="progress-bar-wrap"><div class="progress-bar" style="width: 25%;"></div></div></td>
+            <td class="num-cell muted">6/15</td>
+            <td class="num-cell"><span class="status-pill hearing">ヒアリング</span></td>
+          </tr>
+          <tr>
+            <td>E様 遺言書作成</td>
+            <td>相続</td>
+            <td>田中</td>
+            <td class="num-cell">¥120,000</td>
+            <td class="num-cell"><div class="progress-bar-wrap"><div class="progress-bar" style="width: 100%;"></div></div></td>
+            <td class="num-cell muted">5/15</td>
+            <td class="num-cell"><span class="status-pill complete">完了</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    Chart.defaults.font.family = "'Noto Sans JP', -apple-system, sans-serif";
+    Chart.defaults.color = '#475569';
+    Chart.defaults.borderColor = '#e2e8f0';
+
+    // ① Monthly revenue
+    new Chart(document.getElementById('monthlyChart'), {
+      type: 'bar',
+      data: {
+        labels: ['6月','7月','8月','9月','10月','11月','12月','1月','2月','3月','4月','5月'],
+        datasets: [{
+          label: '月次売上（千円）',
+          data: [5800, 6200, 5400, 5950, 6480, 7100, 6850, 6200, 6800, 7350, 7360, 8450],
+          backgroundColor: (ctx) => {
+            const idx = ctx.dataIndex;
+            return idx === 11 ? '#f97316' : '#1e40af';
+          },
+          borderRadius: 6, maxBarThickness: 50
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { callback: (v) => '¥' + v.toLocaleString() + '千' }, grid: { color: '#f1f5f9' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // ② Service breakdown
+    new Chart(document.getElementById('serviceChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['商業登記', '不動産登記', '相続', '許認可', '法律相談'],
+        datasets: [{
+          data: [32, 28, 18, 14, 8],
+          backgroundColor: ['#1e40af','#3b82f6','#60a5fa','#93c5fd','#f97316'],
+          borderWidth: 3, borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              boxWidth: 12, boxHeight: 12, padding: 10, font: { size: 12 },
+              generateLabels: (chart) => chart.data.labels.map((label, i) => ({
+                text: `${label}  ${chart.data.datasets[0].data[i]}%`,
+                fillStyle: chart.data.datasets[0].backgroundColor[i],
+                strokeStyle: chart.data.datasets[0].backgroundColor[i],
+                index: i
+              }))
+            }
+          }
+        }
+      }
+    });
+
+    // ③ Staff utilization
+    new Chart(document.getElementById('staffChart'), {
+      type: 'bar',
+      data: {
+        labels: ['佐藤（司法書士）', '田中（行政書士）', '鈴木（行政書士）', '高橋（補助）', '伊藤（事務）'],
+        datasets: [{
+          label: '稼働時間',
+          data: [148, 132, 118, 95, 78],
+          backgroundColor: '#1e40af',
+          borderRadius: 6
+        }, {
+          label: '目標',
+          data: [140, 140, 140, 100, 80],
+          backgroundColor: '#cbd5e1',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', align: 'end', labels: { boxWidth: 12, boxHeight: 12, font: { size: 12 } } } },
+        scales: {
+          x: { beginAtZero: true, ticks: { callback: (v) => v + 'h' }, grid: { color: '#f1f5f9' } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+
+    // ④ Lead source
+    new Chart(document.getElementById('leadChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['ホームページ', '紹介', 'Google検索', 'チラシ', 'SNS'],
+        datasets: [{
+          data: [34, 28, 20, 10, 8],
+          backgroundColor: ['#1e40af','#f97316','#3b82f6','#93c5fd','#fbbf24'],
+          borderWidth: 3, borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              boxWidth: 12, boxHeight: 12, padding: 10, font: { size: 12 },
+              generateLabels: (chart) => chart.data.labels.map((label, i) => ({
+                text: `${label}  ${chart.data.datasets[0].data[i]}%`,
+                fillStyle: chart.data.datasets[0].backgroundColor[i],
+                strokeStyle: chart.data.datasets[0].backgroundColor[i],
+                index: i
+              }))
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

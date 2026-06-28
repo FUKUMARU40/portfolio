@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>飲食店経営ダッシュボード｜サンプル</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    .dashboard {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 900;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .header .subtitle {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .period-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      font-size: 14px;
+      color: #475569;
+    }
+    .period-selector .icon {
+      color: #3b82f6;
+    }
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border-left: 4px solid #3b82f6;
+      transition: transform 0.2s;
+    }
+    .kpi-card.accent {
+      border-left-color: #f97316;
+    }
+    .kpi-card .label {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .kpi-card .value {
+      font-size: 28px;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .kpi-card .change {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .change.positive {
+      color: #059669;
+      background: #ecfdf5;
+    }
+    .change.negative {
+      color: #dc2626;
+      background: #fef2f2;
+    }
+    .change-period {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-left: 6px;
+    }
+    /* Chart Grid */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .chart-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .chart-card.full {
+      grid-column: 1 / -1;
+    }
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .chart-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .chart-meta {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .chart-container {
+      position: relative;
+      height: 280px;
+    }
+    .chart-container.tall {
+      height: 320px;
+    }
+    /* Ranking Table */
+    .table-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead th {
+      text-align: left;
+      padding: 12px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      border-bottom: 2px solid #e2e8f0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    thead th.num {
+      text-align: right;
+    }
+    tbody td {
+      padding: 14px 8px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: #475569;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .rank-badge.gold {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: white;
+    }
+    .rank-badge.silver {
+      background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+      color: white;
+    }
+    .rank-badge.bronze {
+      background: linear-gradient(135deg, #fb923c, #ea580c);
+      color: white;
+    }
+    .product-name {
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .category-tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #eff6ff;
+      color: #1e40af;
+      font-weight: 500;
+    }
+    .num-cell {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .num-cell.muted {
+      color: #64748b;
+      font-weight: 400;
+    }
+    .trend-up {
+      color: #059669;
+      font-size: 12px;
+      margin-left: 4px;
+    }
+    .trend-down {
+      color: #dc2626;
+      font-size: 12px;
+      margin-left: 4px;
+    }
+    @media (max-width: 768px) {
+      .chart-grid {
+        grid-template-columns: 1fr;
+      }
+      .header h1 {
+        font-size: 18px;
+      }
+      .kpi-card .value {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-title">
+        <div class="logo">BG</div>
+        <div>
+          <h1>Bistro Group 経営ダッシュボード</h1>
+          <div class="subtitle">3店舗 統合売上分析</div>
+        </div>
+      </div>
+      <div class="period-selector">
+        <span class="icon">📅</span>
+        <span>2026年5月度（5/1 〜 5/17）</span>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="label">総売上</div>
+        <div class="value">¥12,450,000</div>
+        <span class="change positive">▲ +8.3%</span>
+        <span class="change-period">前月比</span>
+      </div>
+      <div class="kpi-card">
+        <div class="label">平均客単価</div>
+        <div class="value">¥2,852</div>
+        <span class="change positive">▲ +3.2%</span>
+        <span class="change-period">前月比</span>
+      </div>
+      <div class="kpi-card accent">
+        <div class="label">来客数</div>
+        <div class="value">4,365<span style="font-size: 16px; color: #64748b;"> 人</span></div>
+        <span class="change positive">▲ +5.1%</span>
+        <span class="change-period">前月比</span>
+      </div>
+      <div class="kpi-card accent">
+        <div class="label">席稼働率</div>
+        <div class="value">78.5<span style="font-size: 16px; color: #64748b;"> %</span></div>
+        <span class="change positive">▲ +4.2pt</span>
+        <span class="change-period">前月比</span>
+      </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">店舗別売上</div>
+          <div class="chart-meta">単位: 千円</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="storeChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">商品カテゴリ別 売上構成</div>
+          <div class="chart-meta">構成比 %</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Sales Chart (Full Width) -->
+    <div class="chart-card full" style="margin-bottom: 16px;">
+      <div class="chart-header">
+        <div class="chart-title">日次売上推移（5/1 〜 5/17）</div>
+        <div class="chart-meta">3店舗合計</div>
+      </div>
+      <div class="chart-container tall">
+        <canvas id="dailyChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Ranking Table -->
+    <div class="table-card">
+      <div class="chart-header">
+        <div class="chart-title">🏆 商品売上ランキング TOP10</div>
+        <div class="chart-meta">2026年5月度</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 60px;">順位</th>
+            <th>商品名</th>
+            <th>カテゴリ</th>
+            <th class="num">販売数</th>
+            <th class="num">売上</th>
+            <th class="num">前月比</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="rank-badge gold">1</span></td>
+            <td class="product-name">黒トリュフのクリームパスタ</td>
+            <td><span class="category-tag">メイン料理</span></td>
+            <td class="num-cell muted">1,200食</td>
+            <td class="num-cell">¥845,000</td>
+            <td class="num-cell"><span class="trend-up">+12.4%</span></td>
+          </tr>
+          <tr>
+            <td><span class="rank-badge silver">2</span></td>
+            <td class="product-name">シェフズランチコース</td>
+            <td><span class="category-tag">メイン料理</span></td>
+            <td class="num-cell muted">480食</td>
+            <td class="num-cell">¥720,000</td>
+            <td class="num-cell"><span class="trend-up">+8.7%</span></td>
+          </tr>
+          <tr>
+            <td><span class="rank-badge bronze">3</span></td>
+            <td class="product-name">クラフトビール（樽生）</td>
+            <td><span class="category-tag">アルコール</span></td>
+            <td class="num-cell muted">2,500杯</td>
+            <td class="num-cell">¥625,000</td>
+            <td class="num-cell"><span class="trend-up">+18.2%</span></td>
+          </tr>
+          <tr>
+            <td><span class="rank-badge">4</span></td>
+            <td class="product-name">国産和牛のグリル</td>
+            <td><span class="category-tag">メイン料理</span></td>
+            <td class="num-cell muted">340食</td>
+            <td class="num-cell">¥598,000</td>
+            <td class="num-cell"><span class="trend-up">+5.3%</span></td>
+          </tr>
+          <tr>
+            <td><span class="rank-badge">5</span></td>
+            <td class="product-name">シーフードリゾット</td>
+            <td><span class="category-tag">メイン料理</span></td>
+            <td class="num-cell muted">820食</td>
+            <td class="num-cell">¥542,000</td>
+            <td class="num-cell"><span class="trend-up">+2.1%</span></td>
+          </tr>
+          <tr>
+            <td><span class="rank-badge">6</span></td>
+            <td class="product-name">季節のサラダプレート</td>
+            <td><span class="category-tag">前菜・サイド</span></td>
+            <td class="num-cell muted">1,100食</td>
+            <td class="num-cell">¥485,000</td>
+            <td class="num-cell"><span class="trend-up">+15.6%</span></td>
+          </tr>
+          <tr>
+            <td><span class="rank-badge">7</span></td>
+            <td class="product-name">ティラミス</td>
+            <td><span class="category-tag">デザート</span></td>
+            <td class="num-cell muted">1,540個</td>
+            <td class="num-cell">¥385,000</td>
+            <td class="num-cell"><span class="trend-down">-3.8%</span></td>
+          </tr>
+          <tr>
+            <td><span class="rank-badge">8</span></td>
+            <td class="product-name">グラスワイン（赤）</td>
+            <td><span class="category-tag">アルコール</span></td>
+            <td class="num-cell muted">1,820杯</td>
+            <td class="num-cell">¥365,000</td>
+            <td class="num-cell"><span class="trend-up">+9.4%</span></td>
+          </tr>
+          <tr>
+            <td><span class="rank-badge">9</span></td>
+            <td class="product-name">マルゲリータピザ</td>
+            <td><span class="category-tag">メイン料理</span></td>
+            <td class="num-cell muted">640枚</td>
+            <td class="num-cell">¥348,000</td>
+            <td class="num-cell"><span class="trend-up">+6.2%</span></td>
+          </tr>
+          <tr>
+            <td><span class="rank-badge">10</span></td>
+            <td class="product-name">自家製ジェラート</td>
+            <td><span class="category-tag">デザート</span></td>
+            <td class="num-cell muted">1,200個</td>
+            <td class="num-cell">¥298,000</td>
+            <td class="num-cell"><span class="trend-up">+22.5%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Chart.js global defaults
+    Chart.defaults.font.family = "'Noto Sans JP', -apple-system, sans-serif";
+    Chart.defaults.color = '#475569';
+    Chart.defaults.borderColor = '#e2e8f0';
+
+    // ① Store Sales Bar Chart
+    new Chart(document.getElementById('storeChart'), {
+      type: 'bar',
+      data: {
+        labels: ['渋谷店', '新宿店', '池袋店'],
+        datasets: [{
+          label: '今月売上',
+          data: [4890, 4520, 3040],
+          backgroundColor: ['#1e40af', '#3b82f6', '#60a5fa'],
+          borderRadius: 8,
+          maxBarThickness: 80
+        }, {
+          label: '前月売上',
+          data: [4515, 4350, 2630],
+          backgroundColor: ['#cbd5e1', '#cbd5e1', '#cbd5e1'],
+          borderRadius: 8,
+          maxBarThickness: 80
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'end',
+            labels: { boxWidth: 12, boxHeight: 12, font: { size: 12 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ¥${ctx.parsed.y.toLocaleString()}千`
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) => '¥' + value.toLocaleString() + '千'
+            },
+            grid: { color: '#f1f5f9' }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+
+    // ② Category Pie Chart
+    new Chart(document.getElementById('categoryChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['メイン料理', 'ドリンク', '前菜・サイド', 'デザート', 'アルコール'],
+        datasets: [{
+          data: [42, 28, 18, 8, 4],
+          backgroundColor: [
+            '#1e40af',
+            '#3b82f6',
+            '#60a5fa',
+            '#93c5fd',
+            '#f97316'
+          ],
+          borderWidth: 3,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '60%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              boxWidth: 12,
+              boxHeight: 12,
+              padding: 12,
+              font: { size: 12 },
+              generateLabels: (chart) => {
+                const data = chart.data;
+                return data.labels.map((label, i) => ({
+                  text: `${label}  ${data.datasets[0].data[i]}%`,
+                  fillStyle: data.datasets[0].backgroundColor[i],
+                  strokeStyle: data.datasets[0].backgroundColor[i],
+                  index: i
+                }));
+              }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.label}: ${ctx.parsed}%`
+            }
+          }
+        }
+      }
+    });
+
+    // ③ Daily Sales Line Chart
+    const dailyLabels = [];
+    const dailyData = [];
+    const baseValues = [620, 580, 750, 820, 730, 950, 1050, 680, 620, 780, 840, 760, 980, 1080, 700, 640, 800];
+    for (let i = 0; i < 17; i++) {
+      const date = new Date(2026, 4, i + 1);
+      dailyLabels.push(`${date.getMonth() + 1}/${date.getDate()}`);
+      dailyData.push(baseValues[i]);
+    }
+
+    new Chart(document.getElementById('dailyChart'), {
+      type: 'line',
+      data: {
+        labels: dailyLabels,
+        datasets: [{
+          label: '日次売上',
+          data: dailyData,
+          borderColor: '#1e40af',
+          backgroundColor: 'rgba(59, 130, 246, 0.08)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#1e40af',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 3
+        }, {
+          label: '目標ライン',
+          data: Array(17).fill(750),
+          borderColor: '#f97316',
+          borderDash: [6, 6],
+          borderWidth: 2,
+          fill: false,
+          pointRadius: 0,
+          tension: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'end',
+            labels: { boxWidth: 12, boxHeight: 12, font: { size: 12 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ¥${ctx.parsed.y.toLocaleString()}千`
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) => '¥' + value.toLocaleString() + '千'
+            },
+            grid: { color: '#f1f5f9' }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
